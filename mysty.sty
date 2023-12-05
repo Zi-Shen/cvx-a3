@@ -1,0 +1,62 @@
+\ProvidesPackage{mysty}[2023/11/30 v1.0 My style file]
+
+\usepackage[margin=0.965in]{geometry}
+\usepackage{tgpagella}
+\usepackage{newpxmath}
+\let\openbox\undefined
+\usepackage{cmap} % Load before fontenc 
+\usepackage[utf8]{inputenc}
+\usepackage[english]{babel}
+\usepackage[T1]{fontenc}
+\usepackage{amsmath}
+\usepackage{bbm}
+\usepackage{amsfonts}
+\usepackage{bm}
+\usepackage{xcolor}
+\definecolor{blueviolet}{rgb}{0.2, 0.2, 0.6}
+\definecolor{webgreen}{rgb}{0,.5,0}
+\definecolor{webbrown}{rgb}{.6,0,0}
+\usepackage{setspace}
+\usepackage[% pdftex,
+	% bookmarks=false,
+	colorlinks=true, %allcolors=blueviolet,
+	urlcolor=webbrown, 
+	linkcolor=blueviolet, 
+	citecolor=webgreen,
+	pdfstartpage=1
+	% pdfstartview={FitH},  % FitBH
+	% bookmarksopen=false
+	]{hyperref}
+\allowdisplaybreaks
+\usepackage{tikz}
+\usepackage{braket}
+% \usepackage[numbers,sort&compress]{natbib}
+\usepackage{csquotes}
+\usepackage[backend=biber,style=nature,url=false]{biblatex}
+\usepackage{amsthm}
+\usepackage{dsfont}
+\usepackage{listings}
+\usepackage[capitalize]{cleveref}
+\usepackage{appendix}
+\usepackage{authblk}
+
+\usepackage{titlesec}
+\usepackage{titlesec}
+
+\titleformat{\section}
+	{\large\center\bfseries}{\thesection}{1em}{\scshape}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\addbibresource[location=remote]{http://127.0.0.1:23119/better-bibtex/export/library?/1/library.biblatex}
+
+\numberwithin{equation}{section}
+
+\DeclareMathOperator{\Var}{Var}
+\DeclareMathOperator{\Cov}{Cov}
+\DeclareMathOperator{\E}{\mathbf{E}}
+\DeclareMathOperator{\Tr}{Tr}
+\DeclareMathOperator{\Reals}{\mathbf{R}}
+
+\newtheorem{theorem}{Theorem}
+\newtheorem{definition}{Definition}
+\newtheorem{lemma}{Lemma}
