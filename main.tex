@@ -1,4 +1,4 @@
-\documentclass[letterpaper,11pt]{article}
+\documentclass[letterpaper,10pt]{article}
 
 \usepackage{mysty}
 
@@ -77,14 +77,14 @@ Combining \Cref{eq:yt,eq:vt}, we can rewrite $y_t$ explicitly in $a_i$
 \end{align}
 More specifically, for $t\in \{1,\cdots,T\}$, we have
 \begin{equation}
-    y_t=y_0+\sum 
+    y_t=y_0+\sum
     \left\{
         \begin{array}{lllll}
             & a_0\\
             & a_0+a_1-g\\
             & a_0+a_1+a_2-2g\\
             & \cdots\\
-            & a_0+a_1+\cdots+a_{t-1}-(t-1)t
+            & a_0+a_1+\cdots+a_{t-1}-(t-1)g
         \end{array}
     \right..
 \end{equation}
@@ -99,7 +99,7 @@ For any given $y_t$, we can rewrite \Cref{eq:yt-rewrite2} in the form of linear 
     \label{eq:yt-liear-combine}
     y_t = \vec c_t^T \vec a + b_t,
 \end{align}
-where $\vec c_T\in \Reals^t$ is a column vector with the $(j+1)$-th entry being $(t-j),~\forall j<t$ and $0$ otherwise, and the second term $b_t$ is equal to $y_0-\frac{t(t-1)}{2} g$.
+where $\vec c_t\in \Reals^T$ is a column vector with the $(j+1)$-th entry being $(t-j),~\forall j<t$ and $0$ otherwise, and the second term $b_t$ is equal to $y_0-\frac{t(t-1)}{2} g$.
 Furthermore, we can vectorize \Cref{eq:yt-liear-combine} to obtain
 \begin{align}
     \label{eq:yt-liear-map}
@@ -180,12 +180,55 @@ The gradient of the constrain in \Cref{eq:height-constraint2} is also differenti
 For each constrain in \Cref{eq:yt-liear-combine}, we have $\forall t\in \{1,\cdots,T\}$,
 \begin{align}
     &f_{1t}=\vec c_t^T \vec a + b_t -h_t\le 0,\\
-    &f_{2t}=tl_t - \vec c_t^T \vec a - b_t\le 0.
+    &f_{2t}=l_t - \vec c_t^T \vec a - b_t\le 0,
+\end{align}
+where $b_t=y_0-\frac{t(t-1)}{2}g$, and additionally, we have
+\begin{align}
+    &f_{3t}=-a_{\rm max} + a_t \le 0,\\
+    &f_{4t}=- a_t \le 0.
 \end{align}
 The gradient of the above two sets of constrains are
 \begin{align}
     &\nabla_{\vec a} f_{1t}=\vec c_t,\\
-    &\nabla_{\vec a} f_{2t}=-\vec c_t.
+    &\nabla_{\vec a} f_{2t}=-\vec c_t,\\
+    &\nabla_{\vec a} f_{3t}=\vec e_t,\\
+    &\nabla_{\vec a} f_{4t}=-\vec e_t,
 \end{align}
+where $\vec c_t=(t, t-1, \cdots, 1, 0, \cdots, 0)^T$ is a column vector with the first $t$ entries being $t, t-1, \cdots, 1$ and the rest being $0$, and $\vec e_t$ is a column vector with the $t$-th entry being $1$ and the rest being $0$.
+
+\subsection{(c)}
+
+The codes used to solve the problem are provided in the link \url{}.
+
+\subsubsection*{Instance 1}
+
+The first instance is a trivial case where the optimal solution is letting the drone turn off its engine during the whole process. The result and required informations are provided in \Cref{fig:instance1}.
+The optimal objective function value provided by the programe is (keep 12 significant digits)
+\begin{align}
+    E(\vec a^*)\approx 2.00054077480.
+\end{align}
+
+\subsubsection*{Instance 2}
+
+The second instance is a more complicated case where the drone needs to tuning its engine to manipulate its height. 
+The result and required informations are provided in \Cref{fig:instance2}.
+The optimal objective function value provided by the programe is (keep 12 significant digits)
+\begin{align}
+    E(\vec a^*)\approx 35951.8168589.
+\end{align}
+
+\begin{figure}
+    \centering
+    \includegraphics[width=0.9\textwidth]{fig/Figure_1.pdf}
+    \caption{\textbf{Instance 1}. The drone turns off its engine and undergoes a parabolic trajectory. Lower-right figure shows evolution of the ellipsoid during the optimization process.}
+    \label{fig:instance1}
+\end{figure}
+
+\begin{figure}
+    \centering
+    \includegraphics[width=0.9\textwidth]{fig/Figure_2.pdf}
+    \caption{\textbf{Instance 2}. The drone avoids obstacles through a series of complex operations. Upper-right figure shows how the objective function converges in the log scale.}
+    \label{fig:instance2}
+\end{figure}
 
 \end{document}
