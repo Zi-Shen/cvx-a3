@@ -3,25 +3,63 @@ import matplotlib.pyplot as plt
 
 
 class ElliAlg:
-    
+    """
+    The ElliAlg class represents an algorithm using ellipsoid method to solve convex optimization problems.
+    """
+
     def __init__(self, instance) -> None:
+        """
+        Initializes an instance of the ElliAlg class.
+
+        Parameters:
+        - instance (dict): A dictionary containing the instance data.
+        - a_max (float): Maximum acceleration.
+        - y_init (float): Initial position.
+        - lx (list): List of x-coordinates of the lower bound of the obstacle.
+        - hx (list): List of x-coordinates of the upper bound of the obstacle.
+
+        Returns:
+        None
+        """
         self.instance = instance
-        self.a_max = instance['a_max']
-        self.y0 = instance['y_init']
-        self.lt = instance['lx']
-        self.ht = instance['hx']
-        self.T = len(self.ht) - 1
-        self.g = 9.8
-        self.opt_curve = [0.5e5]
-        self.n = self.T
-        self.eps = 1e-1
-        self.a_opt = np.zeros(self.T)+10
-        self.elli = Ellipsoid(self.a_opt, np.eye(self.T)*(self.T*self.a_max**2))
-        self.lower_bounds = []
-        self.elli_list = [self.elli]
+        self.a_max = instance['a_max']  # Maximum acceleration
+        """Maximum acceleration."""
+        self.y0 = instance['y_init']  # Initial position
+        """Initial position."""
+        self.lt = instance['lx']  # List of x-coordinates of the lower bound of the obstacle
+        """List of x-coordinates of the lower bound of the obstacle."""
+        self.ht = instance['hx']  # List of x-coordinates of the upper bound of the obstacle
+        """List of x-coordinates of the upper bound of the obstacle."""
+        self.T = len(self.ht) - 1  # Number of time steps
+        """Number of time steps."""
+        self.g = 9.8  # Acceleration due to gravity
+        """Acceleration due to gravity."""
+        self.opt_curve = [0.5e5]  # Optimal curve
+        """Optimization curve."""
+        self.n = self.T  # Number of time steps
+        """Number of time steps."""
+        self.eps = 1e-1  # Epsilon value
+        """Epsilon value for stopping criterion."""
+        self.a_opt = np.zeros(self.T) + 10  # Optimal acceleration
+        """Initialize the optimal acceleration."""
+        self.elli = Ellipsoid(self.a_opt, np.eye(self.T) * (self.T * self.a_max ** 2))  # Ellipsoid object
+        """Ellipsoid object."""
+        self.lower_bounds = []  # List of lower bounds
+        """List of lower bounds."""
+        self.elli_list = [self.elli]  # List of ellipsoids
+        """List of ellipsoids."""
         pass
 
     def traj(self, a_vec):
+        """
+        Computes the trajectory given an acceleration vector.
+
+        Parameters:
+        - a_vec (array-like): The acceleration vector.
+
+        Returns:
+        - traj (list): The trajectory.
+        """
         traj = [self.y0]
         for i in range(0, self.T):
             t = i + 1
@@ -30,9 +68,27 @@ class ElliAlg:
         return traj
     
     def energy(self, a_vec):
+        """
+        Computes the energy given an acceleration vector.
+
+        Parameters:
+        - a_vec (array-like): The acceleration vector.
+
+        Returns:
+        - energy (float): The energy.
+        """
         return np.sum(np.ones(self.T)+a_vec+a_vec**2+a_vec**3)
 
     def fjt(self, a_vec):
+        """
+        Computes the constraint functions given an acceleration vector.
+
+        Parameters:
+        - a_vec (array-like): The acceleration vector.
+
+        Returns:
+        - fjt (array-like): The constraint functions.
+        """
         f1t = np.zeros(self.T)
         f2t = np.zeros(self.T)
         f3t = np.zeros(self.T)
@@ -47,9 +103,29 @@ class ElliAlg:
         return np.vstack([f1t, f2t, f3t, f4t])
 
     def subgrad_f0(self, a_vec):
+        """
+        Computes the subgradient of the objective function at a given acceleration vector.
+
+        Parameters:
+        - a_vec (array-like): The acceleration vector.
+
+        Returns:
+        - subgrad (array-like): The subgradient.
+        """
+
         return 1+2*a_vec+3*a_vec**2
 
     def subgrad_fjt(self, j, t):
+        """
+        Computes the subgradient of the j-th constraint function at time t.
+
+        Parameters:
+        - j (int): The index of the constraint function.
+        - t (int): The time step.
+
+        Returns:
+        - subgrad (array-like): The subgradient.
+        """
         if j == 1:
             return self.subgrad_f1(t)
         elif j == 2:
@@ -62,12 +138,27 @@ class ElliAlg:
             raise print("j must in [1, 2, 3, 4]")
 
     def is_feasible(self, a_vec):
+        """
+        Checks if a given acceleration vector is feasible.
+
+        Parameters:
+        - a_vec (array-like): The acceleration vector.
+
+        Returns:
+        - is_feasible (bool or array-like): True if feasible, otherwise the indices of the violated constraints.
+        """
         if np.all(self.fjt(a_vec) <= 0):
             return True
         else:
             return np.argwhere(self.fjt(a_vec) > 0)
 
     def update(self):
+        """
+        Updates the algorithm.
+
+        Returns:
+        - success (bool): True if the update was successful, False otherwise.
+        """
         x = self.elli.x
         isFeasible = self.is_feasible(x)
         if isFeasible is True:
@@ -88,7 +179,6 @@ class ElliAlg:
             return True
         else:
             j, t = isFeasible[0]
-            #for j, t in isFeasible:
             g = self.subgrad_fjt(j+1, t+1)
             h = self.fjt(self.elli.x)[j, t]
             self.opt_curve.append(self.opt_curve[-1])
@@ -98,19 +188,18 @@ class ElliAlg:
                 return False
             self.elli_cut(g, h)
             return True
-            '''
-            j, t = isFeasible
-            g = self.subgrad_fjt(j, t)
-            h = self.fjt(x)[j, t]
-            if h - np.sqrt(np.inner(g, self.elli.P@g)) > 0:
-                print("Solution found at infeasible point, stopping")
-                print(f"Optimal value: {np.min(self.opt_curve)}")
-                return False
-            self.elli_cut(g, h)
-            return True
-            '''
 
     def elli_cut(self, g, h):
+        """
+        Performs an ellipsoid cut.
+
+        Parameters:
+        - g (array-like): The subgradient.
+        - h (float): The constraint value.
+
+        Returns:
+        None
+        """
         x = self.elli.x
         P = self.elli.P
         n = self.n
@@ -125,17 +214,53 @@ class ElliAlg:
             self.elli = Ellipsoid(x_, P_)
 
     def subgrad_f1(self, t):
+        """
+        Computes the subgradient of the first constraint function at time t.
+
+        Parameters:
+        - t (int): The time step.
+
+        Returns:
+        - subgrad (array-like): The subgradient.
+        """
         return np.hstack([np.arange(t, 0, -1), np.zeros(self.T-t)])
 
     def subgrad_f2(self, t):
+        """
+        Computes the subgradient of the second constraint function at time t.
+
+        Parameters:
+        - t (int): The time step.
+
+        Returns:
+        - subgrad (array-like): The subgradient.
+        """
         return -self.subgrad_f1(t)
     
     def subgrad_f3(self, t):
+        """
+        Computes the subgradient of the third constraint function at time t.
+
+        Parameters:
+        - t (int): The time step.
+
+        Returns:
+        - subgrad (array-like): The subgradient.
+        """
         e_t = np.zeros(self.T)
         e_t[t-1] = 1
         return e_t
     
     def subgrad_f4(self, t):
+        """
+        Computes the subgradient of the fourth constraint function at time t.
+
+        Parameters:
+        - t (int): The time step.
+
+        Returns:
+        - subgrad (array-like): The subgradient.
+        """
         e_t = np.zeros(self.T)
         e_t[t-1] = -1
         return e_t
@@ -144,10 +269,22 @@ class ElliAlg:
 class Ellipsoid:
 
     def __init__(self, x, P):
+        """
+        Initialize the class with given parameters.
+
+        Parameters:
+        - x (numpy.ndarray): The coordinate of the center of the ellipsoid.
+        - P (numpy.ndarray): The matrix defining the ellipsoid, which should be positive definite.
+
+        Returns:
+        None
+        """
         self.x = x
+        """The coordinate of the center of the ellipsoid."""
         if np.linalg.det(P) < 0:
             print('P is not positive definite, det(P) = ', np.linalg.det(P))
         self.P = P
+        """The matrix defining the ellipsoid, which should be positive definite."""
 
 if __name__ == "__main__":
     import matplotlib.colors as mcolors
