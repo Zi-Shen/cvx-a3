@@ -38,7 +38,7 @@ class ElliAlg:
         """Optimization curve."""
         self.n = self.T  # Number of time steps
         """Number of time steps."""
-        self.eps = 1e-1  # Epsilon value
+        self.eps = 1e-3  # Epsilon value
         """Epsilon value for stopping criterion."""
         self.a_opt = np.zeros(self.T) + 10  # Optimal acceleration
         """Initialize the optimal acceleration."""
@@ -64,7 +64,7 @@ class ElliAlg:
         for i in range(0, self.T):
             t = i + 1
             ct = self.subgrad_f1(t)
-            traj.append(np.inner(ct, a_vec)+self.y0-t*(t-1)*self.g/2)
+            traj.append(np.inner(ct, a_vec)+self.y0-t*(t+1)*self.g/2)
         return traj
     
     def energy(self, a_vec):
@@ -96,8 +96,8 @@ class ElliAlg:
         for i in range(0, self.T):
             t = i + 1
             ct = self.subgrad_f1(t)
-            f1t[i] = np.inner(ct, a_vec) + self.y0-t*(t-1)*self.g/2 - self.ht[t]
-            f2t[i] = self.lt[t] - np.inner(ct, a_vec) - self.y0+t*(t-1)*self.g/2
+            f1t[i] = np.inner(ct, a_vec) + self.y0-t*(t+1)*self.g/2 - self.ht[t]
+            f2t[i] = self.lt[t] - np.inner(ct, a_vec) - self.y0+t*(t+1)*self.g/2
             f3t[i] = a_vec[i] - self.a_max
             f4t[i] = -a_vec[i]
         return np.vstack([f1t, f2t, f3t, f4t])
@@ -296,15 +296,53 @@ if __name__ == "__main__":
     print("y_init = ", elli_alg.y0)
     print("h_t = ", elli_alg.ht)
     print("l_t = ", elli_alg.lt)
+    
     k = 0
     while elli_alg.update():
         k += 1
         if k % 100 == 0:
             print(f"Iteration {k}")
-        if k > 1000:
+        if k > 10000:
             break
         elli_alg.elli_list.append(elli_alg.elli)
     print("Optimal value: ", elli_alg.opt_curve[-1])
+
+    '''
+    fig, ax = plt.subplots(2, 2, figsize=(12, 8))
+    ax[0,0].plot(elli_alg.opt_curve[1:])
+    ax[0,0].plot(elli_alg.lower_bounds, marker='.', ls='-', label='Lower bounds')
+    ax[0,0].set_xlabel("Iteration")
+    ax[0,0].set_ylabel("Objective value")
+    ax[0,0].hlines(elli_alg.opt_curve[-1], 0, len(elli_alg.opt_curve)-1, colors='r', linestyles='dashed', label=f'Optimal value: {elli_alg.opt_curve[-1]}')
+    
+    ax[0,1].semilogy(elli_alg.opt_curve[1:]-elli_alg.opt_curve[-1])
+    ax[0,1].set_xlabel("Iteration")
+    ax[0,1].set_ylabel(r'$f(x_k)-f^*$')
+
+    ax[1,1].plot(elli_alg.a_opt, marker='o', ls='--')
+    ax[1,1].set_xlabel("Time")
+    ax[1,1].set_ylabel("Acceleration")
+    ax[1,1].hlines(elli_alg.a_max, 0, elli_alg.T, colors='r', linestyles='dashed', label=r'$a_{\rm max}$')
+    ax[1,1].set_ylim([-1, elli_alg.a_max+1])
+    ax[1,1].set_xlim([0-0.1, elli_alg.T-1+0.1])
+
+    ax[1,0].plot(elli_alg.traj(elli_alg.a_opt), marker='.', ls='-')
+    ax[1,0].set_xlabel("Time")
+    ax[1,0].set_ylabel("Height")
+    ax[1,0].plot(elli_alg.ht, ls='-', c='gray')
+    ax[1,0].plot(elli_alg.lt, ls='-', c='gray')
+
+    # Fill the area between maximum height and minimum height with gray color
+    ax[1,0].fill_between(range(len(elli_alg.ht)), elli_alg.ht, 1000*np.ones(len(elli_alg.ht)), color='lightgray')
+    ax[1,0].fill_between(range(len(elli_alg.lt)), -1000*np.ones(len(elli_alg.ht)), elli_alg.lt, color='lightgray',label='Barrier')
+    ax[1,0].set_ylim([-1, elli_alg.ht.max()+10])
+    #ax[1,0].set_xlim([0-0.1, elli_alg.T-1+0.1])
+
+    ax[0,0].legend()
+    ax[1,1].legend()
+    ax[1,0].legend()
+    plt.show()
+    '''
 
     fig, ax = plt.subplots(2, 2, figsize=(12, 8))
     ax[0,0].plot(elli_alg.opt_curve[1:])
@@ -338,30 +376,30 @@ if __name__ == "__main__":
 
     ax[0,0].legend()
     ax[1,1].legend()
-    ax[0,1].legend()
     ax[1,0].legend()
     plt.show()
 
 '''
-#plot the ellispoids
-fig, ax = plt.subplots(1, 1, figsize=(8, 8))
-ax.set_xlim([-15, 15])
-ax.set_ylim([-15, 15])
-ax.set_xlabel(r"$a_0$")
-ax.set_ylabel(r"$a_1$")
-cmap = mcolors.LinearSegmentedColormap.from_list('my_cmap', ['#ADD8E6', '#000080'])
+    #plot the ellispoids
+    ax[0,1].set_xlim([-20+8, 20+8])
+    ax[0,1].set_ylim([-20+5, 20+5])
+    ax[0,1].set_xlabel(r"$a_0$")
+    ax[0,1].set_ylabel(r"$a_1$")
+    cmap = mcolors.LinearSegmentedColormap.from_list('my_cmap', ['#ADD8E6', '#000080'])
 
-for elli in elli_alg.elli_list:
-    x = elli.x
-    P = elli.P
-    w, v = np.linalg.eig(P)
-    theta = np.arctan2(v[1, 0], v[0, 0])
-    a = np.sqrt(w[0])
-    b = np.sqrt(w[1])
-    e = Ellipse(xy=x, width=2*a, height=2*b, angle=theta*180/np.pi, alpha=0.1)
-    ax.add_artist(e)
-    e.set_clip_box(ax.bbox)
-    e.set_facecolor(cmap(np.random.rand()))
-    e.set_edgecolor('black')
-plt.show()
+    count = 0
+    tcount = len(elli_alg.elli_list)
+    for elli in elli_alg.elli_list:
+        x = elli.x
+        P = elli.P
+        w, v = np.linalg.eig(P)
+        theta = np.arctan2(v[1, 0], v[0, 0])
+        a = np.sqrt(w[0])
+        b = np.sqrt(w[1])
+        e = Ellipse(xy=x, width=2*a, height=2*b, angle=theta*180/np.pi, alpha=0.1)
+        ax[0,1].add_artist(e)
+        e.set_clip_box(ax[0,1].bbox)
+        e.set_facecolor(cmap(count/tcount))
+        e.set_edgecolor('black')
+    plt.show()
 '''

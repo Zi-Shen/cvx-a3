@@ -67,39 +67,39 @@ In addition, we can also rewrite the formula for $v_t$ explicitly in $a_i$
 which can be further rewritten as
 \begin{align}
     \label{eq:vt}
-    v_t = \sum_{i=0}^{t} a_i - g t,~\forall t\in \{0,1,\cdots,T-1\}.
+    v_t = \sum_{i=0}^{t} a_i - g (t+1),~\forall t\in \{0,1,\cdots,T-1\}.
 \end{align}
 
 Combining \Cref{eq:yt,eq:vt}, we can rewrite $y_t$ explicitly in $a_i$
 \begin{align}
     \label{eq:yt-rewrite}
-    y_t = y_0 + \sum_{i=0}^{t-1} \left(\sum_{j=0}^{i} a_j - g i\right),~\forall t\in \{1,\cdots,T\}.
+    y_t = y_0 + \sum_{i=0}^{t-1} \left(\sum_{j=0}^{i} a_j - g (i+1)\right),~\forall t\in \{1,\cdots,T\}.
 \end{align}
 More specifically, for $t\in \{1,\cdots,T\}$, we have
 \begin{equation}
     y_t=y_0+\sum
     \left\{
         \begin{array}{lllll}
-            & a_0\\
-            & a_0+a_1-g\\
-            & a_0+a_1+a_2-2g\\
+            & a_0-g\\
+            & a_0+a_1-2g\\
+            & a_0+a_1+a_2-3g\\
             & \cdots\\
-            & a_0+a_1+\cdots+a_{t-1}-(t-1)g
+            & a_0+a_1+\cdots+a_{t-1}-t g
         \end{array}
     \right..
 \end{equation}
 The above formula can be further simplified as
 \begin{align}
-    y_t &= y_0 + t a_0 + (t-1)a_1 + \cdots + a_{t-1} - \frac{t(t-1)}{2} g\\
+    y_t &= y_0 + t a_0 + (t-1)a_1 + \cdots + a_{t-1} - \frac{t(t+1)}{2} g\\
     \label{eq:yt-rewrite2}
-    &= y_0 + \sum_{j=0}^{t-1} (t-j) a_j - \frac{t(t-1)}{2} g,~\forall t\in \{1,\cdots,T\}.
+    &= y_0 + \sum_{j=0}^{t-1} (t-j) a_j - \frac{t(t+1)}{2} g,~\forall t\in \{1,\cdots,T\}.
 \end{align}
 For any given $y_t$, we can rewrite \Cref{eq:yt-rewrite2} in the form of linear map, i.e.
 \begin{align}
     \label{eq:yt-liear-combine}
     y_t = \vec c_t^T \vec a + b_t,
 \end{align}
-where $\vec c_t\in \Reals^T$ is a column vector with the $(j+1)$-th entry being $(t-j),~\forall j<t$ and $0$ otherwise, and the second term $b_t$ is equal to $y_0-\frac{t(t-1)}{2} g$.
+where $\vec c_t\in \Reals^T$ is a column vector with the $(j+1)$-th entry being $(t-j),~\forall j<t$ and $0$ otherwise, and the second term $b_t$ is equal to $y_0-\frac{t(t+1)}{2} g$.
 Furthermore, we can vectorize \Cref{eq:yt-liear-combine} to obtain
 \begin{align}
     \label{eq:yt-liear-map}
@@ -182,7 +182,7 @@ For each constrain in \Cref{eq:yt-liear-combine}, we have $\forall t\in \{1,\cdo
     &f_{1t}=\vec c_t^T \vec a + b_t -h_t\le 0,\\
     &f_{2t}=l_t - \vec c_t^T \vec a - b_t\le 0,
 \end{align}
-where $b_t=y_0-\frac{t(t-1)}{2}g$, and additionally, we have
+where $b_t=y_0-\frac{t(t+1)}{2}g$, and additionally, we have
 \begin{align}
     &f_{3t}=-a_{\rm max} + a_t \le 0,\\
     &f_{4t}=- a_t \le 0.
@@ -203,10 +203,10 @@ All codes of the programe as well as the LaTeX codes are provided in the link \h
 
 \subsubsection*{Instance 1}
 
-The first instance is a trivial case where the optimal solution is letting the drone turn off its engine during the whole process. The result and required informations are provided in \Cref{fig:instance1}.
+The first instance is a very easy problem where the total time steps are only 2. The result and required informations are provided in \Cref{fig:instance1}.
 The optimal objective function value provided by the programe is (keep 12 significant digits)
 \begin{align}
-    E(\vec a^*)\approx 2.00054077480.
+    E(\vec a^*)\approx 589.284743792.
 \end{align}
 
 \subsubsection*{Instance 2}
@@ -215,13 +215,14 @@ The second instance is a more complicated case where the drone needs to tuning i
 The result and required informations are provided in \Cref{fig:instance2}.
 The optimal objective function value provided by the programe is (keep 12 significant digits)
 \begin{align}
-    E(\vec a^*)\approx 35951.8168589.
+    E(\vec a^*)\approx 39619.4731291.
 \end{align}
 
 \begin{figure}
     \centering
     \includegraphics[width=0.9\textwidth]{fig/Figure_1.pdf}
-    \caption{\textbf{Instance 1}. The drone turns off its engine and undergoes a parabolic trajectory. Lower-right figure shows evolution of the ellipsoid during the optimization process.}
+    \caption{\textbf{Instance 1}. The drone turns on its engine to avoid hitting the ground. 
+    Upper-right figure shows evolution of the ellipsoid during the optimization process.}
     \label{fig:instance1}
 \end{figure}
 
